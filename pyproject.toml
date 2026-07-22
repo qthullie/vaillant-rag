@@ -1,0 +1,68 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "vaillant-rag"
+version = "0.1.0"
+description = "Provider-agnostic Retrieval-Augmented Generation over local documents (PDF, text, Markdown, HTML) with any OpenAI-compatible LLM endpoint (Ollama, vLLM, LM Studio, OpenAI, ...)."
+readme = "README.md"
+requires-python = ">=3.10"
+license = { text = "MIT" }
+authors = [{ name = "Quentin Thulliez" }]
+keywords = ["rag", "retrieval-augmented-generation", "llm", "ollama", "pdf", "embeddings"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+]
+
+dependencies = [
+    "numpy>=1.26.0",
+    "requests>=2.31.0",
+    "python-dotenv>=1.0.1",
+    "PyYAML>=6.0",
+    "PyMuPDF>=1.24.0",
+    "sentence-transformers>=2.7.0",
+    "rank-bm25>=0.2.2",
+]
+
+[project.optional-dependencies]
+ocr = [
+    "Pillow>=10.4.0",
+    "pytesseract>=0.3.13",
+]
+faiss = [
+    "faiss-cpu>=1.8.0",
+]
+api = [
+    "fastapi>=0.110",
+    "uvicorn>=0.29",
+]
+dev = [
+    "pytest>=8.0",
+    "ruff>=0.4",
+    "httpx>=0.27",
+]
+
+[project.scripts]
+vaillant-rag = "vaillant_rag.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py310"
+src = ["src", "tests"]
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "N", "UP", "B", "SIM"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["src"]
