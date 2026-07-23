@@ -117,14 +117,15 @@ class RagPipeline:
                 contexts = self.reranker.rerank(question, candidates, self.settings.top_n_contexts)
             else:
                 contexts = candidates[: self.settings.top_n_contexts]
-        for rank, chunk in enumerate(contexts, start=1):
-            logger.debug(
-                "Context #%d | id=%s score=%.4f | %.120s",
-                rank,
-                chunk.chunk_id,
-                chunk.score,
-                " ".join(chunk.text.split()),
-            )
+        if logger.isEnabledFor(logging.DEBUG):  # the text join below is not free
+            for rank, chunk in enumerate(contexts, start=1):
+                logger.debug(
+                    "Context #%d | id=%s score=%.4f | %.120s",
+                    rank,
+                    chunk.chunk_id,
+                    chunk.score,
+                    " ".join(chunk.text.split()),
+                )
         return contexts
 
     def _select_markdown_sections(self, question: str) -> list[RetrievedChunk]:

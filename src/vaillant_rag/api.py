@@ -89,7 +89,12 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         try:
             result = pipeline.ask(request.question)
         except LLMError as exc:
-            raise HTTPException(status_code=502, detail=str(exc)) from exc
+            # Full detail stays server-side: upstream error bodies may leak
+            # internal URLs or provider internals to API clients.
+            logger.error("LLM backend failure: %s", exc)
+            raise HTTPException(
+                status_code=502, detail="LLM backend error; see server logs."
+            ) from exc
         return AskResponse(
             answer=result.answer,
             contexts=[
@@ -109,7 +114,10 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         try:
             contexts, fragments = pipeline.ask_stream(request.question)
         except LLMError as exc:
-            raise HTTPException(status_code=502, detail=str(exc)) from exc
+            logger.error("LLM backend failure: %s", exc)
+            raise HTTPException(
+                status_code=502, detail="LLM backend error; see server logs."
+            ) from exc
 
         def event_source() -> Iterator[str]:
             head = {
@@ -123,7 +131,8 @@ def create_app(settings: Settings | None = None) -> FastAPI:
                     yield f"data: {json.dumps({'delta': fragment}, ensure_ascii=False)}\n\n"
             except LLMError as exc:
                 logger.error("LLM failure mid-stream: %s", exc)
-                yield f"data: {json.dumps({'error': str(exc)}, ensure_ascii=False)}\n\n"
+                payload = {"error": "LLM backend error; see server logs."}
+                yield f"data: {json.dumps(payload, ensure_ascii=False)}\n\n"
             yield "data: [DONE]\n\n"
 
         return StreamingResponse(event_source(), media_type="text/event-stream")

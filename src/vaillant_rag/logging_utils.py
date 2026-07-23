@@ -3,11 +3,16 @@
 from __future__ import annotations
 
 import logging
+from logging.handlers import RotatingFileHandler
 from pathlib import Path
 
 from .config import Settings
 
 LOG_FORMAT = "%(asctime)s %(levelname)s %(name)s %(message)s"
+
+# 5 MB per file, 3 backups: log usage is bounded at ~20 MB worst case.
+_LOG_MAX_BYTES = 5 * 1024 * 1024
+_LOG_BACKUP_COUNT = 3
 
 
 def setup_logging(settings: Settings) -> None:
@@ -20,7 +25,12 @@ def setup_logging(settings: Settings) -> None:
     log_dir.mkdir(parents=True, exist_ok=True)
     level = getattr(logging, settings.log_level.upper(), logging.INFO)
 
-    file_handler = logging.FileHandler(log_dir / settings.log_file, encoding="utf-8")
+    file_handler = RotatingFileHandler(
+        log_dir / settings.log_file,
+        maxBytes=_LOG_MAX_BYTES,
+        backupCount=_LOG_BACKUP_COUNT,
+        encoding="utf-8",
+    )
     file_handler.setLevel(level)
     file_handler.setFormatter(logging.Formatter(LOG_FORMAT))
 

@@ -16,6 +16,7 @@ from __future__ import annotations
 
 import json
 import logging
+import os
 from dataclasses import dataclass, field
 from pathlib import Path
 
@@ -91,20 +92,37 @@ class VectorStore:
         return cls(vectors=vectors, ids=ids, texts=texts, doc_hashes=doc_hashes)
 
     def save(self, index_dir: str | Path) -> None:
-        """Persist the store to ``index_dir`` (created if missing)."""
+        """Persist the store to ``index_dir`` (created if missing).
+
+        Files are written to temporary names and then renamed, so a crash
+        mid-save never leaves a half-written index behind (``os.replace``
+        is atomic on both POSIX and Windows).
+        """
         index_dir = Path(index_dir)
         index_dir.mkdir(parents=True, exist_ok=True)
-        np.savez(
-            index_dir / INDEX_FILE,
-            vectors=np.asarray(self.vectors, dtype=np.float32),
-            ids=np.array(self.ids),
-        )
-        with open(index_dir / STORE_FILE, "w", encoding="utf-8") as f:
-            for chunk_id, text in zip(self.ids, self.texts, strict=False):
+
+        tmp_index = index_dir / (INDEX_FILE + ".tmp")
+        # Write through a file handle: np.savez would append ".npz" to a
+        # plain path that lacks the suffix.
+        with open(tmp_index, "wb") as f:
+            np.savez(
+                f,
+                vectors=np.asarray(self.vectors, dtype=np.float32),
+                ids=np.array(self.ids),
+            )
+        tmp_store = index_dir / (STORE_FILE + ".tmp")
+        with open(tmp_store, "w", encoding="utf-8") as f:
+            # strict: an ids/texts desync is corruption and must fail loudly.
+            for chunk_id, text in zip(self.ids, self.texts, strict=True):
                 f.write(json.dumps({"id": chunk_id, "text": text}, ensure_ascii=False) + "\n")
-        (index_dir / HASHES_FILE).write_text(
+        tmp_hashes = index_dir / (HASHES_FILE + ".tmp")
+        tmp_hashes.write_text(
             json.dumps(self.doc_hashes, ensure_ascii=False, indent=2), encoding="utf-8"
         )
+
+        os.replace(tmp_index, index_dir / INDEX_FILE)
+        os.replace(tmp_store, index_dir / STORE_FILE)
+        os.replace(tmp_hashes, index_dir / HASHES_FILE)
         logger.info("Index saved: %d chunks, %d documents", len(self.ids), len(self.doc_hashes))
 
     # --- mutation --------------------------------------------------------

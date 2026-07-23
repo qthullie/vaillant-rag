@@ -42,7 +42,7 @@ class NumpySearcher:
         self.vectors = vectors
 
     def search(self, query_vector: np.ndarray, top_k: int) -> list[tuple[int, float]]:
-        if not self.vectors.size:
+        if top_k <= 0 or not self.vectors.size:
             return []
         scores = (query_vector @ self.vectors.T).flatten()
         top_k = min(top_k, len(scores))

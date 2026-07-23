@@ -86,7 +86,8 @@ def test_ask_llm_failure_returns_502(client):
     with patch("vaillant_rag.llm.requests.post", side_effect=requests_lib.ConnectionError("down")):
         response = client.post("/ask", json={"question": "anything"})
     assert response.status_code == 502
-    assert "Cannot reach LLM endpoint" in response.json()["detail"]
+    # Detail stays generic: upstream error bodies must not leak to clients.
+    assert response.json()["detail"] == "LLM backend error; see server logs."
 
 
 def test_ask_stream_sends_contexts_then_deltas(client):

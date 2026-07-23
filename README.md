@@ -328,6 +328,10 @@ CI (GitHub Actions) runs linting and the test suite on every push and PR.
 - The web API has **no authentication**: keep it bound to `127.0.0.1`
   (the default) or put it behind a reverse proxy that handles auth
   before exposing it beyond your machine.
+- Documents are parsed with PyMuPDF/python-docx/openpyxl: only index
+  files you trust, and keep dependencies current (a `pip-audit` job runs
+  in CI). The `[office]` extra includes `defusedxml`, which openpyxl
+  picks up automatically to harden XML parsing.
 
 ## License
 

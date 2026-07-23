@@ -88,6 +88,10 @@ class Settings:
                 "chunk_overlap_chars must be smaller than chunk_size_chars "
                 f"(got overlap={self.chunk_overlap_chars}, size={self.chunk_size_chars})"
             )
+        if self.top_k <= 0:
+            raise ValueError(f"top_k must be positive (got {self.top_k})")
+        if self.top_n_contexts <= 0:
+            raise ValueError(f"top_n_contexts must be positive (got {self.top_n_contexts})")
         if self.top_n_contexts > self.top_k:
             raise ValueError(
                 "top_n_contexts cannot exceed top_k "

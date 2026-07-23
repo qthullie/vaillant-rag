@@ -39,6 +39,9 @@ ocr = [
 office = [
     "python-docx>=1.1.0",
     "openpyxl>=3.1.0",
+    # openpyxl auto-detects defusedxml and uses it to harden XML parsing
+    # against entity-expansion attacks in untrusted workbooks.
+    "defusedxml>=0.7.1",
 ]
 faiss = [
     "faiss-cpu>=1.8.0",

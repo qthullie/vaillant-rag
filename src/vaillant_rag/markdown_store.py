@@ -150,11 +150,16 @@ class MarkdownStore:
 
 
 def format_outline(sections: list[Section], preview_chars: int = 90) -> str:
-    """Numbered one-line-per-section outline shown to the LLM."""
+    """Numbered one-line-per-section outline shown to the LLM.
+
+    Headings and previews are capped so one pathological document cannot
+    inflate the selection prompt.
+    """
     lines = []
     for number, section in enumerate(sections, start=1):
+        heading = section.heading[:120]
         preview = " ".join(section.text.split())[:preview_chars]
-        lines.append(f"{number}. [{section.doc_name}] {section.heading} — {preview}")
+        lines.append(f"{number}. [{section.doc_name}] {heading} — {preview}")
     return "\n".join(lines)
 
 
