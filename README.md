@@ -23,6 +23,25 @@ corpus (see [Markdown mode](#markdown-mode-llm-navigated-retrieval)).
   <img src="assets/demo.svg" alt="Animated demo of a vaillant-rag qa session" width="760"/>
 </p>
 
+## Table of contents
+
+- [Why](#why)
+- [Features](#features)
+- [Architecture](#architecture)
+- [Quick start](#quick-start)
+  - [1. Install](#1-install)
+  - [2. Point at an LLM](#2-point-at-an-llm)
+  - [3. Add documents and build the index](#3-add-documents-and-build-the-index)
+  - [4. Ask questions](#4-ask-questions)
+- [Web API](#web-api)
+- [Scaling retrieval](#scaling-retrieval)
+- [Markdown mode (LLM-navigated retrieval)](#markdown-mode-llm-navigated-retrieval)
+- [Configuration](#configuration)
+- [Development](#development)
+- [Scalability notes](#scalability-notes)
+- [Security notes](#security-notes)
+- [License](#license)
+
 ## Why
 
 Most RAG examples are tied to a single provider SDK or a heavyweight
