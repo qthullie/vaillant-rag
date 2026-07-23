@@ -40,7 +40,7 @@ class Settings:
     index_dir: str = "data/index"
     system_prompt_path: str = "prompts/system_prompt.txt"
     log_dir: str = "logs"
-    log_file: str = "pdf_rag.log"
+    log_file: str = "vaillant_rag.log"
     log_level: str = "INFO"
 
     # --- LLM (any OpenAI-compatible chat completions endpoint) ---

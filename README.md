@@ -112,7 +112,7 @@ documents (.pdf/.txt/.md/.html/.docx/.xlsx)
 Requires Python ≥ 3.10.
 
 ```bash
-git clone https://github.com/<you>/vaillant-rag.git
+git clone https://github.com/qthullie/vaillant-rag.git
 cd vaillant-rag
 python -m venv .venv
 # Windows: .venv\Scripts\activate    Linux/macOS: source .venv/bin/activate
@@ -325,6 +325,9 @@ CI (GitHub Actions) runs linting and the test suite on every push and PR.
 - Retrieved document text is sent verbatim to the LLM: treat untrusted
   documents as potential prompt-injection vectors and review answers
   accordingly.
+- The web API has **no authentication**: keep it bound to `127.0.0.1`
+  (the default) or put it behind a reverse proxy that handles auth
+  before exposing it beyond your machine.
 
 ## License
 
