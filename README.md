@@ -2,7 +2,7 @@
   <img src="assets/logo.svg" alt="vaillant-rag logo — pixel-art homing pigeon" width="160"/>
 </p>
 
-# vaillant-rag
+<h1 align="center">Vaillant RAG</h1>
 
 > Named after **Vaillant**, the homing pigeon that flew the last message out
 > of Fort Vaux through the shellfire of Verdun in 1916 — and delivered it.
