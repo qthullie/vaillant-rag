@@ -36,6 +36,6 @@ jobs:
       - name: Install test dependencies
         run: |
           pip install numpy requests python-dotenv PyYAML PyMuPDF rank-bm25 pytest \
-            fastapi httpx faiss-cpu
+            fastapi httpx faiss-cpu python-docx openpyxl
       - name: Run tests
         run: pytest -v

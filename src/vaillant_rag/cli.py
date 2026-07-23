@@ -6,6 +6,10 @@ Commands:
     vaillant-rag qa               Interactive question-answering session (streams answers).
     vaillant-rag analyze <file>   Run the system prompt against one document.
     vaillant-rag serve            Start the FastAPI web service (requires the [api] extra).
+
+Output follows the demo palette (see ``assets/demo.svg``); while an
+answer is being retrieved and generated, the logo pigeon flies across
+the line. Both degrade gracefully on non-TTY output.
 """
 
 from __future__ import annotations
@@ -20,31 +24,73 @@ from .indexing import sync_index
 from .llm import LLMError
 from .logging_utils import setup_logging
 from .pipeline import RagPipeline
+from .term import PigeonFlight, accent, dim, error, ok, prompt_input
 
 logger = logging.getLogger(__name__)
 
 QUIT_COMMANDS = {"quit", "exit", "q"}
 
 
+def _retrieval_summary(settings: Settings) -> str:
+    """Human-readable retrieval description for the timing line."""
+    if settings.retrieval_mode == "markdown":
+        return "markdown mode: LLM-picked sections"
+    summary = "hybrid search: dense + BM25, RRF" if settings.use_hybrid_search else "dense search"
+    if settings.use_reranker:
+        summary += ", reranked"
+    return summary
+
+
 def _cmd_index(settings: Settings, args: argparse.Namespace) -> int:
     report = sync_index(settings, full_rebuild=not args.incremental)
-    print(
+    summary = (
         f"Index updated: {len(report.added_or_updated)} added/updated, "
         f"{len(report.skipped_unchanged)} unchanged, "
         f"{len(report.removed)} removed, {len(report.failed)} failed."
     )
+    print(error(summary) if report.failed else summary)
     return 1 if report.failed else 0
+
+
+def _stream_answer(pipeline: RagPipeline, question: str) -> bool:
+    """Stream one answer with the pigeon flying until the first token.
+
+    Returns False when the LLM failed (already reported on stderr).
+    """
+    flight = PigeonFlight()
+    flight.start()
+    try:
+        _contexts, fragments = pipeline.ask_stream(question)
+        first = next(fragments, "")
+    except LLMError as exc:
+        flight.stop()
+        print(error(f"LLM error: {exc}"), file=sys.stderr)
+        return False
+    finally:
+        flight.stop()
+    print(ok("\n=== Answer ===") + "\n")
+    try:
+        if first:
+            print(first, end="", flush=True)
+        for fragment in fragments:
+            print(fragment, end="", flush=True)
+    except LLMError as exc:
+        print("\n" + error(f"LLM error: {exc}"), file=sys.stderr)
+        return False
+    return True
 
 
 def _cmd_qa(settings: Settings, args: argparse.Namespace) -> int:
     pipeline = RagPipeline(settings)
     if pipeline.store.is_empty:
-        print("The index is empty. Run `vaillant-rag index` first.", file=sys.stderr)
+        print(error("The index is empty. Run `vaillant-rag index` first."), file=sys.stderr)
         return 1
-    print(f"Loaded {len(pipeline.store)} chunks. Type 'quit' to exit.\n")
+    unit = "sections" if settings.retrieval_mode == "markdown" else "chunks"
+    print(f"{accent('vaillant-rag')} {dim('— qa')}")
+    print(dim(f"Loaded {len(pipeline.store)} {unit}. Type 'quit' to exit.") + "\n")
     while True:
         try:
-            question = input("Your question: ").strip()
+            question = prompt_input("Your question: ").strip()
         except (EOFError, KeyboardInterrupt):
             print("\nBye.")
             return 0
@@ -52,29 +98,27 @@ def _cmd_qa(settings: Settings, args: argparse.Namespace) -> int:
             print("Bye.")
             return 0
         started = time.perf_counter()
-        try:
-            _contexts, fragments = pipeline.ask_stream(question)
-            print("\n=== Answer ===\n")
-            for fragment in fragments:
-                print(fragment, end="", flush=True)
-        except LLMError as exc:
-            print(f"\nLLM error: {exc}", file=sys.stderr)
+        if not _stream_answer(pipeline, question):
             continue
         elapsed = time.perf_counter() - started
-        print(f"\n\n({elapsed:.1f}s)\n")
+        print("\n\n" + dim(f"({elapsed:.1f}s — streamed, {_retrieval_summary(settings)})") + "\n")
 
 
 def _cmd_analyze(settings: Settings, args: argparse.Namespace) -> int:
     pipeline = RagPipeline(settings)
+    flight = PigeonFlight()
+    flight.start()
     try:
         answer = pipeline.analyze_document(args.file)
     except (FileNotFoundError, ValueError) as exc:
-        print(f"Error: {exc}", file=sys.stderr)
+        print(error(f"Error: {exc}"), file=sys.stderr)
         return 1
     except LLMError as exc:
-        print(f"LLM error: {exc}", file=sys.stderr)
+        print(error(f"LLM error: {exc}"), file=sys.stderr)
         return 1
-    print("\n=== Document analysis ===\n")
+    finally:
+        flight.stop()
+    print(ok("\n=== Document analysis ===") + "\n")
     print(answer)
     return 0
 
@@ -146,7 +190,7 @@ def main(argv: list[str] | None = None) -> int:
         if args.command == "serve":
             return _cmd_serve(settings, args)
     except FileNotFoundError as exc:
-        print(f"Error: {exc}", file=sys.stderr)
+        print(error(f"Error: {exc}"), file=sys.stderr)
         return 1
     except KeyboardInterrupt:
         print("\nInterrupted.")

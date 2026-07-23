@@ -60,6 +60,7 @@ class Settings:
     chunk_overlap_chars: int = 150
 
     # --- Retrieval ---
+    retrieval_mode: str = "vector"  # vector (embedding index) | markdown (LLM-picked sections)
     top_k: int = 20
     top_n_contexts: int = 5
     use_hybrid_search: bool = True
@@ -67,6 +68,10 @@ class Settings:
     faiss_min_chunks: int = 50_000  # auto mode: switch to FAISS above this size
     use_reranker: bool = False
     reranker_model: str = "cross-encoder/ms-marco-MiniLM-L6-v2"
+
+    # --- Markdown retrieval mode ---
+    markdown_section_max_chars: int = 4000  # max characters per corpus section
+    markdown_outline_limit: int = 150  # BM25-prefilter the outline above this many sections
 
     # --- Document extraction ---
     ocr_images: bool = False  # OCR images embedded in PDFs (requires the [ocr] extra)
@@ -94,6 +99,14 @@ class Settings:
             raise ValueError(
                 f"vector_backend must be one of auto/numpy/faiss, got {self.vector_backend!r}"
             )
+        if self.retrieval_mode not in ("vector", "markdown"):
+            raise ValueError(
+                f"retrieval_mode must be one of vector/markdown, got {self.retrieval_mode!r}"
+            )
+        if self.markdown_section_max_chars <= 0:
+            raise ValueError("markdown_section_max_chars must be positive")
+        if self.markdown_outline_limit <= 0:
+            raise ValueError("markdown_outline_limit must be positive")
 
     @property
     def system_prompt(self) -> str:
