@@ -118,7 +118,7 @@ class RagPipeline:
             else:
                 contexts = candidates[: self.settings.top_n_contexts]
         for rank, chunk in enumerate(contexts, start=1):
-            logger.info(
+            logger.debug(
                 "Context #%d | id=%s score=%.4f | %.120s",
                 rank,
                 chunk.chunk_id,

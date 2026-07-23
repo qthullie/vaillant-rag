@@ -1,6 +1,7 @@
 import numpy as np
 import pytest
 
+from vaillant_rag.ann import NumpySearcher
 from vaillant_rag.vector_store import VectorStore
 
 
@@ -14,7 +15,7 @@ def test_empty_store():
     store = VectorStore()
     assert store.is_empty
     assert len(store) == 0
-    assert store.dense_search(np.ones((1, 8), dtype=np.float32), top_k=5) == []
+    assert NumpySearcher(store.vectors).search(np.ones((1, 8), dtype=np.float32), top_k=5) == []
 
 
 def test_add_and_search():
@@ -22,7 +23,7 @@ def test_add_and_search():
     vectors = _unit_vectors(3)
     store.add_document("a.txt", "hash-a", ["one", "two", "three"], vectors)
     assert len(store) == 3
-    results = store.dense_search(vectors[1:2], top_k=2)
+    results = NumpySearcher(store.vectors).search(vectors[1:2], top_k=2)
     assert results[0][0] == 1  # most similar to itself
     assert results[0][1] == pytest.approx(1.0, abs=1e-5)
 

@@ -154,15 +154,3 @@ class VectorStore:
             self.ids.extend(f"{doc_name}#chunk-{i}" for i in range(len(chunks)))
             self.texts.extend(chunks)
         self.doc_hashes[doc_name] = doc_hash
-
-    # --- search ----------------------------------------------------------
-
-    def dense_search(self, query_vector: np.ndarray, top_k: int) -> list[tuple[int, float]]:
-        """Return the ``top_k`` (chunk_index, cosine_score) pairs for a query.
-
-        Exact numpy search; see :mod:`vaillant_rag.ann` for the FAISS backend.
-        Returns an empty list when the store is empty.
-        """
-        from .ann import NumpySearcher  # local import to avoid a module cycle
-
-        return NumpySearcher(self.vectors).search(query_vector, top_k)
