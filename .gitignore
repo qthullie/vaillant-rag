@@ -143,8 +143,14 @@ Thumbs.db
 # Project specific
 logs/
 data/index/
+# Example corpus is committed (see data/docs/README.md); ignore anything else
+# a user drops into the docs directory.
 data/docs/*
 !data/docs/.gitkeep
+!data/docs/README.md
+!data/docs/udhr.txt
+!data/docs/rust_ownership.md
+!data/docs/solar_system.pdf
 *.log
 
 # Temporary files
