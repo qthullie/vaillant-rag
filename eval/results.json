@@ -1,0 +1,843 @@
+{
+  "corpus_chunks": 50,
+  "embedding_model": "intfloat/multilingual-e5-small",
+  "top_k": 20,
+  "ks": [
+    1,
+    3,
+    5,
+    10
+  ],
+  "configs": [
+    {
+      "config": "dense",
+      "recall_at_k": {
+        "1": 0.6296,
+        "3": 0.8519,
+        "5": 0.8889,
+        "10": 1.0
+      },
+      "mrr": 0.767,
+      "latency_p50_ms": 23.67,
+      "latency_p95_ms": 29.07,
+      "num_answerable": 27,
+      "num_unanswerable": 3,
+      "per_question": [
+        {
+          "id": "udhr-born-free",
+          "rank": 1,
+          "latency_ms": 26.16
+        },
+        {
+          "id": "udhr-slavery",
+          "rank": 1,
+          "latency_ms": 22.76
+        },
+        {
+          "id": "udhr-torture",
+          "rank": 1,
+          "latency_ms": 23.51
+        },
+        {
+          "id": "udhr-religion",
+          "rank": 1,
+          "latency_ms": 22.83
+        },
+        {
+          "id": "udhr-education-free",
+          "rank": 2,
+          "latency_ms": 22.42
+        },
+        {
+          "id": "udhr-movement",
+          "rank": 4,
+          "latency_ms": 23.29
+        },
+        {
+          "id": "udhr-innocent",
+          "rank": 1,
+          "latency_ms": 29.23
+        },
+        {
+          "id": "udhr-asylum",
+          "rank": 1,
+          "latency_ms": 26.33
+        },
+        {
+          "id": "udhr-marriage-family",
+          "rank": 1,
+          "latency_ms": 29.35
+        },
+        {
+          "id": "rust-three-rules",
+          "rank": 2,
+          "latency_ms": 28.88
+        },
+        {
+          "id": "rust-no-gc",
+          "rank": 1,
+          "latency_ms": 24.8
+        },
+        {
+          "id": "rust-drop",
+          "rank": 6,
+          "latency_ms": 23.73
+        },
+        {
+          "id": "rust-move-invalidates",
+          "rank": 6,
+          "latency_ms": 26.67
+        },
+        {
+          "id": "rust-move-term",
+          "rank": 2,
+          "latency_ms": 28.61
+        },
+        {
+          "id": "rust-clone",
+          "rank": 1,
+          "latency_ms": 22.47
+        },
+        {
+          "id": "rust-copy-trait",
+          "rank": 2,
+          "latency_ms": 23.61
+        },
+        {
+          "id": "rust-double-free",
+          "rank": 8,
+          "latency_ms": 22.62
+        },
+        {
+          "id": "rust-stack-faster",
+          "rank": 2,
+          "latency_ms": 23.73
+        },
+        {
+          "id": "rust-lifo",
+          "rank": 1,
+          "latency_ms": 24.5
+        },
+        {
+          "id": "rust-copy-drop",
+          "rank": 1,
+          "latency_ms": 21.9
+        },
+        {
+          "id": "solar-hottest",
+          "rank": 1,
+          "latency_ms": 22.21
+        },
+        {
+          "id": "solar-olympus",
+          "rank": 1,
+          "latency_ms": 24.6
+        },
+        {
+          "id": "solar-mars-moons",
+          "rank": 1,
+          "latency_ms": 24.5
+        },
+        {
+          "id": "solar-uranus-tilt",
+          "rank": 2,
+          "latency_ms": 23.99
+        },
+        {
+          "id": "solar-mars-red",
+          "rank": 1,
+          "latency_ms": 24.84
+        },
+        {
+          "id": "solar-pluto",
+          "rank": 1,
+          "latency_ms": 22.07
+        },
+        {
+          "id": "solar-saturn-float",
+          "rank": 1,
+          "latency_ms": 22.53
+        },
+        {
+          "id": "none-mars-population",
+          "rank": null,
+          "latency_ms": 21.98
+        },
+        {
+          "id": "none-rust-price",
+          "rank": null,
+          "latency_ms": 21.62
+        },
+        {
+          "id": "none-udhr-internet",
+          "rank": null,
+          "latency_ms": 22.48
+        }
+      ]
+    },
+    {
+      "config": "hybrid",
+      "recall_at_k": {
+        "1": 0.7407,
+        "3": 0.8519,
+        "5": 1.0,
+        "10": 1.0
+      },
+      "mrr": 0.8235,
+      "latency_p50_ms": 23.61,
+      "latency_p95_ms": 26.13,
+      "num_answerable": 27,
+      "num_unanswerable": 3,
+      "per_question": [
+        {
+          "id": "udhr-born-free",
+          "rank": 1,
+          "latency_ms": 26.36
+        },
+        {
+          "id": "udhr-slavery",
+          "rank": 1,
+          "latency_ms": 23.05
+        },
+        {
+          "id": "udhr-torture",
+          "rank": 1,
+          "latency_ms": 25.86
+        },
+        {
+          "id": "udhr-religion",
+          "rank": 1,
+          "latency_ms": 24.25
+        },
+        {
+          "id": "udhr-education-free",
+          "rank": 1,
+          "latency_ms": 24.2
+        },
+        {
+          "id": "udhr-movement",
+          "rank": 4,
+          "latency_ms": 24.15
+        },
+        {
+          "id": "udhr-innocent",
+          "rank": 1,
+          "latency_ms": 23.53
+        },
+        {
+          "id": "udhr-asylum",
+          "rank": 1,
+          "latency_ms": 22.55
+        },
+        {
+          "id": "udhr-marriage-family",
+          "rank": 1,
+          "latency_ms": 24.99
+        },
+        {
+          "id": "rust-three-rules",
+          "rank": 4,
+          "latency_ms": 23.65
+        },
+        {
+          "id": "rust-no-gc",
+          "rank": 1,
+          "latency_ms": 23.1
+        },
+        {
+          "id": "rust-drop",
+          "rank": 3,
+          "latency_ms": 22.42
+        },
+        {
+          "id": "rust-move-invalidates",
+          "rank": 2,
+          "latency_ms": 23.95
+        },
+        {
+          "id": "rust-move-term",
+          "rank": 5,
+          "latency_ms": 25.07
+        },
+        {
+          "id": "rust-clone",
+          "rank": 1,
+          "latency_ms": 23.06
+        },
+        {
+          "id": "rust-copy-trait",
+          "rank": 1,
+          "latency_ms": 22.93
+        },
+        {
+          "id": "rust-double-free",
+          "rank": 5,
+          "latency_ms": 23.31
+        },
+        {
+          "id": "rust-stack-faster",
+          "rank": 2,
+          "latency_ms": 26.56
+        },
+        {
+          "id": "rust-lifo",
+          "rank": 1,
+          "latency_ms": 25.17
+        },
+        {
+          "id": "rust-copy-drop",
+          "rank": 1,
+          "latency_ms": 23.43
+        },
+        {
+          "id": "solar-hottest",
+          "rank": 1,
+          "latency_ms": 22.63
+        },
+        {
+          "id": "solar-olympus",
+          "rank": 1,
+          "latency_ms": 22.48
+        },
+        {
+          "id": "solar-mars-moons",
+          "rank": 1,
+          "latency_ms": 24.89
+        },
+        {
+          "id": "solar-uranus-tilt",
+          "rank": 1,
+          "latency_ms": 24.67
+        },
+        {
+          "id": "solar-mars-red",
+          "rank": 1,
+          "latency_ms": 23.57
+        },
+        {
+          "id": "solar-pluto",
+          "rank": 1,
+          "latency_ms": 24.78
+        },
+        {
+          "id": "solar-saturn-float",
+          "rank": 1,
+          "latency_ms": 23.1
+        },
+        {
+          "id": "none-mars-population",
+          "rank": null,
+          "latency_ms": 22.44
+        },
+        {
+          "id": "none-rust-price",
+          "rank": null,
+          "latency_ms": 24.44
+        },
+        {
+          "id": "none-udhr-internet",
+          "rank": null,
+          "latency_ms": 22.7
+        }
+      ]
+    },
+    {
+      "config": "hybrid+rerank",
+      "recall_at_k": {
+        "1": 0.8889,
+        "3": 0.963,
+        "5": 0.963,
+        "10": 1.0
+      },
+      "mrr": 0.9189,
+      "latency_p50_ms": 1555.04,
+      "latency_p95_ms": 1872.42,
+      "num_answerable": 27,
+      "num_unanswerable": 3,
+      "per_question": [
+        {
+          "id": "udhr-born-free",
+          "rank": 1,
+          "latency_ms": 565.44
+        },
+        {
+          "id": "udhr-slavery",
+          "rank": 1,
+          "latency_ms": 1655.31
+        },
+        {
+          "id": "udhr-torture",
+          "rank": 1,
+          "latency_ms": 1717.34
+        },
+        {
+          "id": "udhr-religion",
+          "rank": 1,
+          "latency_ms": 1607.12
+        },
+        {
+          "id": "udhr-education-free",
+          "rank": 1,
+          "latency_ms": 1634.53
+        },
+        {
+          "id": "udhr-movement",
+          "rank": 3,
+          "latency_ms": 1502.95
+        },
+        {
+          "id": "udhr-innocent",
+          "rank": 1,
+          "latency_ms": 1683.04
+        },
+        {
+          "id": "udhr-asylum",
+          "rank": 1,
+          "latency_ms": 1658.72
+        },
+        {
+          "id": "udhr-marriage-family",
+          "rank": 1,
+          "latency_ms": 1868.76
+        },
+        {
+          "id": "rust-three-rules",
+          "rank": 1,
+          "latency_ms": 2019.22
+        },
+        {
+          "id": "rust-no-gc",
+          "rank": 1,
+          "latency_ms": 1869.17
+        },
+        {
+          "id": "rust-drop",
+          "rank": 1,
+          "latency_ms": 1828.89
+        },
+        {
+          "id": "rust-move-invalidates",
+          "rank": 7,
+          "latency_ms": 1745.35
+        },
+        {
+          "id": "rust-move-term",
+          "rank": 3,
+          "latency_ms": 1875.08
+        },
+        {
+          "id": "rust-clone",
+          "rank": 1,
+          "latency_ms": 1853.45
+        },
+        {
+          "id": "rust-copy-trait",
+          "rank": 1,
+          "latency_ms": 1820.07
+        },
+        {
+          "id": "rust-double-free",
+          "rank": 1,
+          "latency_ms": 1730.28
+        },
+        {
+          "id": "rust-stack-faster",
+          "rank": 1,
+          "latency_ms": 1124.59
+        },
+        {
+          "id": "rust-lifo",
+          "rank": 1,
+          "latency_ms": 1114.75
+        },
+        {
+          "id": "rust-copy-drop",
+          "rank": 1,
+          "latency_ms": 1060.84
+        },
+        {
+          "id": "solar-hottest",
+          "rank": 1,
+          "latency_ms": 1114.58
+        },
+        {
+          "id": "solar-olympus",
+          "rank": 1,
+          "latency_ms": 1169.98
+        },
+        {
+          "id": "solar-mars-moons",
+          "rank": 1,
+          "latency_ms": 1098.49
+        },
+        {
+          "id": "solar-uranus-tilt",
+          "rank": 1,
+          "latency_ms": 1209.03
+        },
+        {
+          "id": "solar-mars-red",
+          "rank": 1,
+          "latency_ms": 1079.37
+        },
+        {
+          "id": "solar-pluto",
+          "rank": 1,
+          "latency_ms": 1164.41
+        },
+        {
+          "id": "solar-saturn-float",
+          "rank": 1,
+          "latency_ms": 1160.1
+        },
+        {
+          "id": "none-mars-population",
+          "rank": null,
+          "latency_ms": 969.15
+        },
+        {
+          "id": "none-rust-price",
+          "rank": null,
+          "latency_ms": 1092.0
+        },
+        {
+          "id": "none-udhr-internet",
+          "rank": null,
+          "latency_ms": 1129.74
+        }
+      ]
+    },
+    {
+      "config": "hybrid chunk=500",
+      "recall_at_k": {
+        "1": 0.7037,
+        "3": 0.8519,
+        "5": 1.0,
+        "10": 1.0
+      },
+      "mrr": 0.7988,
+      "latency_p50_ms": 33.17,
+      "latency_p95_ms": 44.02,
+      "num_answerable": 27,
+      "num_unanswerable": 3,
+      "per_question": [
+        {
+          "id": "udhr-born-free",
+          "rank": 3,
+          "latency_ms": 44.22
+        },
+        {
+          "id": "udhr-slavery",
+          "rank": 1,
+          "latency_ms": 34.56
+        },
+        {
+          "id": "udhr-torture",
+          "rank": 5,
+          "latency_ms": 38.17
+        },
+        {
+          "id": "udhr-religion",
+          "rank": 1,
+          "latency_ms": 37.47
+        },
+        {
+          "id": "udhr-education-free",
+          "rank": 1,
+          "latency_ms": 28.85
+        },
+        {
+          "id": "udhr-movement",
+          "rank": 5,
+          "latency_ms": 30.23
+        },
+        {
+          "id": "udhr-innocent",
+          "rank": 1,
+          "latency_ms": 32.91
+        },
+        {
+          "id": "udhr-asylum",
+          "rank": 1,
+          "latency_ms": 43.07
+        },
+        {
+          "id": "udhr-marriage-family",
+          "rank": 1,
+          "latency_ms": 46.9
+        },
+        {
+          "id": "rust-three-rules",
+          "rank": 2,
+          "latency_ms": 39.34
+        },
+        {
+          "id": "rust-no-gc",
+          "rank": 4,
+          "latency_ms": 43.06
+        },
+        {
+          "id": "rust-drop",
+          "rank": 2,
+          "latency_ms": 43.79
+        },
+        {
+          "id": "rust-move-invalidates",
+          "rank": 3,
+          "latency_ms": 42.77
+        },
+        {
+          "id": "rust-move-term",
+          "rank": 1,
+          "latency_ms": 33.43
+        },
+        {
+          "id": "rust-clone",
+          "rank": 1,
+          "latency_ms": 31.26
+        },
+        {
+          "id": "rust-copy-trait",
+          "rank": 4,
+          "latency_ms": 32.71
+        },
+        {
+          "id": "rust-double-free",
+          "rank": 1,
+          "latency_ms": 30.29
+        },
+        {
+          "id": "rust-stack-faster",
+          "rank": 1,
+          "latency_ms": 30.54
+        },
+        {
+          "id": "rust-lifo",
+          "rank": 1,
+          "latency_ms": 38.88
+        },
+        {
+          "id": "rust-copy-drop",
+          "rank": 1,
+          "latency_ms": 28.96
+        },
+        {
+          "id": "solar-hottest",
+          "rank": 1,
+          "latency_ms": 27.02
+        },
+        {
+          "id": "solar-olympus",
+          "rank": 1,
+          "latency_ms": 32.0
+        },
+        {
+          "id": "solar-mars-moons",
+          "rank": 1,
+          "latency_ms": 31.41
+        },
+        {
+          "id": "solar-uranus-tilt",
+          "rank": 1,
+          "latency_ms": 30.6
+        },
+        {
+          "id": "solar-mars-red",
+          "rank": 1,
+          "latency_ms": 37.64
+        },
+        {
+          "id": "solar-pluto",
+          "rank": 1,
+          "latency_ms": 35.05
+        },
+        {
+          "id": "solar-saturn-float",
+          "rank": 1,
+          "latency_ms": 27.33
+        },
+        {
+          "id": "none-mars-population",
+          "rank": null,
+          "latency_ms": 40.38
+        },
+        {
+          "id": "none-rust-price",
+          "rank": null,
+          "latency_ms": 27.96
+        },
+        {
+          "id": "none-udhr-internet",
+          "rank": null,
+          "latency_ms": 31.56
+        }
+      ]
+    },
+    {
+      "config": "hybrid chunk=1500",
+      "recall_at_k": {
+        "1": 0.8148,
+        "3": 0.963,
+        "5": 0.963,
+        "10": 1.0
+      },
+      "mrr": 0.8889,
+      "latency_p50_ms": 37.1,
+      "latency_p95_ms": 50.88,
+      "num_answerable": 27,
+      "num_unanswerable": 3,
+      "per_question": [
+        {
+          "id": "udhr-born-free",
+          "rank": 1,
+          "latency_ms": 54.27
+        },
+        {
+          "id": "udhr-slavery",
+          "rank": 2,
+          "latency_ms": 49.49
+        },
+        {
+          "id": "udhr-torture",
+          "rank": 2,
+          "latency_ms": 42.19
+        },
+        {
+          "id": "udhr-religion",
+          "rank": 1,
+          "latency_ms": 38.76
+        },
+        {
+          "id": "udhr-education-free",
+          "rank": 1,
+          "latency_ms": 36.37
+        },
+        {
+          "id": "udhr-movement",
+          "rank": 2,
+          "latency_ms": 42.19
+        },
+        {
+          "id": "udhr-innocent",
+          "rank": 1,
+          "latency_ms": 49.28
+        },
+        {
+          "id": "udhr-asylum",
+          "rank": 1,
+          "latency_ms": 33.04
+        },
+        {
+          "id": "udhr-marriage-family",
+          "rank": 1,
+          "latency_ms": 38.54
+        },
+        {
+          "id": "rust-three-rules",
+          "rank": 3,
+          "latency_ms": 52.01
+        },
+        {
+          "id": "rust-no-gc",
+          "rank": 6,
+          "latency_ms": 42.67
+        },
+        {
+          "id": "rust-drop",
+          "rank": 1,
+          "latency_ms": 33.26
+        },
+        {
+          "id": "rust-move-invalidates",
+          "rank": 1,
+          "latency_ms": 33.47
+        },
+        {
+          "id": "rust-move-term",
+          "rank": 1,
+          "latency_ms": 34.05
+        },
+        {
+          "id": "rust-clone",
+          "rank": 1,
+          "latency_ms": 32.73
+        },
+        {
+          "id": "rust-copy-trait",
+          "rank": 1,
+          "latency_ms": 42.8
+        },
+        {
+          "id": "rust-double-free",
+          "rank": 1,
+          "latency_ms": 45.37
+        },
+        {
+          "id": "rust-stack-faster",
+          "rank": 1,
+          "latency_ms": 37.08
+        },
+        {
+          "id": "rust-lifo",
+          "rank": 1,
+          "latency_ms": 37.93
+        },
+        {
+          "id": "rust-copy-drop",
+          "rank": 1,
+          "latency_ms": 43.77
+        },
+        {
+          "id": "solar-hottest",
+          "rank": 1,
+          "latency_ms": 36.19
+        },
+        {
+          "id": "solar-olympus",
+          "rank": 1,
+          "latency_ms": 36.41
+        },
+        {
+          "id": "solar-mars-moons",
+          "rank": 1,
+          "latency_ms": 33.05
+        },
+        {
+          "id": "solar-uranus-tilt",
+          "rank": 1,
+          "latency_ms": 32.85
+        },
+        {
+          "id": "solar-mars-red",
+          "rank": 1,
+          "latency_ms": 27.9
+        },
+        {
+          "id": "solar-pluto",
+          "rank": 1,
+          "latency_ms": 33.08
+        },
+        {
+          "id": "solar-saturn-float",
+          "rank": 1,
+          "latency_ms": 34.84
+        },
+        {
+          "id": "none-mars-population",
+          "rank": null,
+          "latency_ms": 42.25
+        },
+        {
+          "id": "none-rust-price",
+          "rank": null,
+          "latency_ms": 35.75
+        },
+        {
+          "id": "none-udhr-internet",
+          "rank": null,
+          "latency_ms": 37.11
+        }
+      ]
+    }
+  ]
+}

@@ -44,6 +44,11 @@ def _hash_file(path: Path) -> str:
     return digest.hexdigest()
 
 
+# A README in the documents folder is treated as metadata about the corpus
+# (provenance, licensing) rather than as a document to index.
+_IGNORED_NAMES = {"readme.md", "readme.txt", "readme"}
+
+
 def _list_documents(docs_dir: Path) -> list[Path]:
     """Supported documents directly inside ``docs_dir``, sorted by name."""
     if not docs_dir.is_dir():
@@ -51,7 +56,11 @@ def _list_documents(docs_dir: Path) -> list[Path]:
             f"Documents directory not found: {docs_dir}. "
             "Create it and add documents, or set DOCS_DIR."
         )
-    return sorted(p for p in docs_dir.iterdir() if p.is_file() and is_supported(p))
+    return sorted(
+        p
+        for p in docs_dir.iterdir()
+        if p.is_file() and is_supported(p) and p.name.lower() not in _IGNORED_NAMES
+    )
 
 
 def index_document(store: VectorStore, embedder: Embedder, settings: Settings, path: Path) -> int:
