@@ -1,0 +1,290 @@
+# Retrieval evaluation set for the example corpus (data/docs/).
+#
+# Each entry:
+#   id          stable identifier
+#   question    the user query
+#   type        factual | semantic | multi_section | unanswerable
+#   doc         source document (informational; unanswerable has none)
+#   answer      reference answer (human-readable; NOT used by retrieval metrics)
+#   answerable  false for questions with no supporting passage in the corpus
+#   sources     verbatim snippets expected in a relevant chunk. Matching is
+#               case-insensitive and whitespace-normalized, so a snippet may be
+#               written on one line even if it wraps in the source document.
+#               A retrieved chunk counts as relevant if it contains ANY snippet.
+#
+# The `sources` are the retrieval ground truth. recall@k and MRR are computed
+# only over answerable questions; unanswerable ones are reported separately
+# (retrieval always returns candidates, so they carry no gold chunk).
+
+# ---------------------------------------------------------------- UDHR (text)
+- id: udhr-born-free
+  question: "According to the Universal Declaration, how are all human beings born?"
+  type: factual
+  doc: udhr.txt
+  answer: "Free and equal in dignity and rights, endowed with reason and conscience."
+  answerable: true
+  sources:
+    - "All human beings are born free and equal in dignity and rights"
+
+- id: udhr-slavery
+  question: "What does the Declaration say must be prohibited in all its forms?"
+  type: factual
+  doc: udhr.txt
+  answer: "Slavery and the slave trade."
+  answerable: true
+  sources:
+    - "slavery and the slave trade shall be prohibited in all their forms"
+
+- id: udhr-torture
+  question: "Is anyone allowed to be tortured or treated cruelly under the Declaration?"
+  type: semantic
+  doc: udhr.txt
+  answer: "No. Article 5 forbids torture and cruel, inhuman or degrading treatment."
+  answerable: true
+  sources:
+    - "No one shall be subjected to torture or to cruel, inhuman or degrading treatment"
+
+- id: udhr-religion
+  question: "May a person change their religion and practice it publicly?"
+  type: semantic
+  doc: udhr.txt
+  answer: "Yes; Article 18 includes freedom to change religion or belief and to manifest it."
+  answerable: true
+  sources:
+    - "freedom to change his religion or belief"
+
+- id: udhr-education-free
+  question: "Does the Declaration say elementary education should cost anything?"
+  type: semantic
+  doc: udhr.txt
+  answer: "No. Education shall be free, at least in the elementary and fundamental stages."
+  answerable: true
+  sources:
+    - "Education shall be free, at least in the elementary and fundamental stages"
+
+- id: udhr-movement
+  question: "Are people free to move around and choose where they live inside a country?"
+  type: semantic
+  doc: udhr.txt
+  answer: "Yes; Article 13 grants freedom of movement and residence within each State."
+  answerable: true
+  sources:
+    - "the right to freedom of movement and residence within the borders of each State"
+
+- id: udhr-innocent
+  question: "How must someone charged with a crime be regarded before trial?"
+  type: semantic
+  doc: udhr.txt
+  answer: "As innocent until proven guilty in a public trial (Article 11)."
+  answerable: true
+  sources:
+    - "the right to be presumed innocent until proved guilty"
+
+- id: udhr-asylum
+  question: "Can a persecuted person seek refuge in another country?"
+  type: semantic
+  doc: udhr.txt
+  answer: "Yes; Article 14 grants the right to seek and enjoy asylum from persecution."
+  answerable: true
+  sources:
+    - "the right to seek and to enjoy in other countries asylum from persecution"
+
+- id: udhr-marriage-family
+  question: "What does the Declaration say about consent to marriage and the family's place in society?"
+  type: multi_section
+  doc: udhr.txt
+  answer: "Marriage requires free and full consent; the family is the fundamental group unit of society entitled to protection."
+  answerable: true
+  sources:
+    - "Marriage shall be entered into only with the free and full consent"
+    - "The family is the natural and fundamental group unit of society"
+
+# ------------------------------------------------------------ Rust (markdown)
+- id: rust-three-rules
+  question: "What are Rust's ownership rules about how many owners a value can have?"
+  type: factual
+  doc: rust_ownership.md
+  answer: "Each value has one owner; there can only be one owner at a time; the value is dropped when the owner goes out of scope."
+  answerable: true
+  sources:
+    - "There can only be one owner at a time"
+
+- id: rust-no-gc
+  question: "How does Rust free heap memory without a garbage collector?"
+  type: semantic
+  doc: rust_ownership.md
+  answer: "Memory is automatically returned when the owning variable goes out of scope."
+  answerable: true
+  sources:
+    - "The memory is automatically returned once the variable that owns it goes out of scope"
+
+- id: rust-drop
+  question: "Which function does Rust call automatically when an owner goes out of scope?"
+  type: factual
+  doc: rust_ownership.md
+  answer: "The drop function, called automatically at the closing curly bracket."
+  answerable: true
+  sources:
+    - "Rust calls `drop` automatically at the closing"
+
+- id: rust-move-invalidates
+  question: "After assigning one String variable to another, why can't you use the first one?"
+  type: semantic
+  doc: rust_ownership.md
+  answer: "The value is moved; Rust considers the first variable no longer valid to avoid a double free."
+  answerable: true
+  sources:
+    - "Rust considers `s1` as no longer valid"
+
+- id: rust-move-term
+  question: "What is the name for copying the pointer, length, and capacity while invalidating the original variable?"
+  type: factual
+  doc: rust_ownership.md
+  answer: "A move."
+  answerable: true
+  sources:
+    - "we would say that `s1` was _moved_ into `s2`"
+
+- id: rust-clone
+  question: "How do you deeply copy the heap data of a String?"
+  type: semantic
+  doc: rust_ownership.md
+  answer: "Use the clone method."
+  answerable: true
+  sources:
+    - "we can use a common method called `clone`"
+
+- id: rust-copy-trait
+  question: "Which annotation lets stack-stored types be copied instead of moved?"
+  type: factual
+  doc: rust_ownership.md
+  answer: "The Copy trait."
+  answerable: true
+  sources:
+    - "Rust has a special annotation called the `Copy` trait"
+
+- id: rust-double-free
+  question: "What memory bug happens if two variables free the same heap allocation?"
+  type: factual
+  doc: rust_ownership.md
+  answer: "A double free error."
+  answerable: true
+  sources:
+    - "This is known as a _double free_ error"
+
+- id: rust-stack-faster
+  question: "Why is pushing to the stack faster than allocating on the heap?"
+  type: semantic
+  doc: rust_ownership.md
+  answer: "The allocator never has to search for space; the location is always at the top of the stack."
+  answerable: true
+  sources:
+    - "Pushing to the stack is faster than allocating on the heap"
+
+- id: rust-lifo
+  question: "In what order does the stack remove the values it stores?"
+  type: factual
+  doc: rust_ownership.md
+  answer: "Last in, first out (LIFO)."
+  answerable: true
+  sources:
+    - "This is referred to as _last in, first out (LIFO)_"
+
+- id: rust-copy-drop
+  question: "Can a type implement both Copy and Drop in Rust?"
+  type: multi_section
+  doc: rust_ownership.md
+  answer: "No; Rust won't allow Copy on a type that (or whose parts) implement the Drop trait."
+  answerable: true
+  sources:
+    - "has implemented the `Drop` trait"
+
+# --------------------------------------------------------- Solar system (PDF)
+- id: solar-hottest
+  question: "Which planet is the hottest in the Solar System?"
+  type: factual
+  doc: solar_system.pdf
+  answer: "Venus, with a mean surface temperature near 465 degrees Celsius."
+  answerable: true
+  sources:
+    - "Venus is the hottest planet"
+
+- id: solar-olympus
+  question: "What is the tallest volcano in the Solar System?"
+  type: factual
+  doc: solar_system.pdf
+  answer: "Olympus Mons on Mars, rising about 22 kilometers."
+  answerable: true
+  sources:
+    - "Olympus Mons, the tallest volcano"
+
+- id: solar-mars-moons
+  question: "How many moons does Mars have, and what are they called?"
+  type: factual
+  doc: solar_system.pdf
+  answer: "Two: Phobos and Deimos."
+  answerable: true
+  sources:
+    - "two small moons, Phobos and Deimos"
+
+- id: solar-uranus-tilt
+  question: "Which planet essentially rotates on its side?"
+  type: semantic
+  doc: solar_system.pdf
+  answer: "Uranus, with an axial tilt of about 98 degrees."
+  answerable: true
+  sources:
+    - "it rotates on its side, with an axial tilt of about 98 degrees"
+
+- id: solar-mars-red
+  question: "Why does Mars look red?"
+  type: semantic
+  doc: solar_system.pdf
+  answer: "Iron oxide (rust) gives its surface a reddish color."
+  answerable: true
+  sources:
+    - "iron oxide, or rust, gives its surface a reddish color"
+
+- id: solar-pluto
+  question: "When was Pluto reclassified as a dwarf planet?"
+  type: factual
+  doc: solar_system.pdf
+  answer: "In 2006, by the International Astronomical Union."
+  answerable: true
+  sources:
+    - "2006, when the International Astronomical Union reclassified it as a dwarf planet"
+
+- id: solar-saturn-float
+  question: "Which planet is less dense than water and would float?"
+  type: semantic
+  doc: solar_system.pdf
+  answer: "Saturn, the least dense planet."
+  answerable: true
+  sources:
+    - "Saturn is the least dense planet"
+    - "it would float if placed in a"
+
+# ------------------------------------------------------------- Unanswerable
+- id: none-mars-population
+  question: "What is the current human population living on Mars?"
+  type: unanswerable
+  doc: null
+  answer: "Not stated in the corpus. The fact sheet gives no population for Mars."
+  answerable: false
+  sources: []
+
+- id: none-rust-price
+  question: "How much does an annual Rust programming license cost?"
+  type: unanswerable
+  doc: null
+  answer: "Not stated in the corpus (Rust is not licensed per year; the chapter is about ownership)."
+  answerable: false
+  sources: []
+
+- id: none-udhr-internet
+  question: "Which article of the UDHR guarantees a right to internet access?"
+  type: unanswerable
+  doc: null
+  answer: "Not stated in the corpus; the UDHR text contains no such provision."
+  answerable: false
+  sources: []
