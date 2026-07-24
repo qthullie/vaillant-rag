@@ -31,7 +31,6 @@ chunk_size_chars: 1000
 chunk_overlap_chars: 150
 
 # --- Retrieval ---
-retrieval_mode: vector       # vector (embedding index) | markdown (LLM-picked Markdown sections)
 top_k: 20                    # candidates retrieved before final selection
 top_n_contexts: 5            # contexts sent to the LLM
 use_hybrid_search: true      # dense + BM25 with reciprocal rank fusion
@@ -39,10 +38,6 @@ vector_backend: auto         # auto | numpy | faiss (faiss needs `pip install va
 faiss_min_chunks: 50000      # auto mode: switch to FAISS above this many chunks
 use_reranker: false          # cross-encoder re-ranking of retrieved candidates
 reranker_model: cross-encoder/ms-marco-MiniLM-L6-v2  # multilingual: BAAI/bge-reranker-base
-
-# --- Markdown retrieval mode (retrieval_mode: markdown) ---
-markdown_section_max_chars: 4000   # max characters per corpus section
-markdown_outline_limit: 150        # BM25-prefilter the outline above this many sections
 
 # --- Document extraction ---
 ocr_images: false            # OCR images in PDFs (requires `pip install vaillant-rag[ocr]` + Tesseract)

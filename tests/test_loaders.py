@@ -2,7 +2,6 @@ import pytest
 
 from vaillant_rag.loaders import (
     SUPPORTED_EXTENSIONS,
-    extract_markdown,
     extract_text,
     is_supported,
 )
@@ -25,7 +24,7 @@ def test_extract_plain_text(tmp_path):
     assert extract_text(path) == "Hello, plain text."
 
 
-def test_extract_markdown(tmp_path):
+def test_extract_md_input(tmp_path):
     path = tmp_path / "readme.md"
     path.write_text("# Title\n\nSome content.", encoding="utf-8")
     assert "Some content." in extract_text(path)
@@ -89,28 +88,15 @@ def test_extract_xlsx_sheets_as_tables(tmp_path):
     assert "| bolt | 42 |" in text
 
 
-def test_extract_markdown_pdf_page_headings(tmp_path):
-    fitz = pytest.importorskip("fitz")
-    path = tmp_path / "doc.pdf"
-    doc = fitz.open()
-    page = doc.new_page()
-    page.insert_text((72, 72), "PDF content here.")
-    doc.save(path)
-    doc.close()
-    markdown = extract_markdown(path)
-    assert "## Page 1" in markdown
-    assert "PDF content here." in markdown
-
-
-def test_extract_markdown_html_headings(tmp_path):
+def test_extract_html_strips_tags(tmp_path):
     path = tmp_path / "page.html"
     path.write_text(
         "<html><body><h2>Chapter</h2><p>Body text.</p></body></html>",
         encoding="utf-8",
     )
-    markdown = extract_markdown(path)
-    assert "## Chapter" in markdown
-    assert "Body text." in markdown
+    text = extract_text(path)
+    assert "Chapter" in text
+    assert "Body text." in text
 
 
 def test_missing_file_raises(tmp_path):

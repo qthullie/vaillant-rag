@@ -1,21 +1,16 @@
 """Index construction and incremental synchronization.
 
-Two index kinds, selected by ``retrieval_mode``:
+Documents are chunked and embedded into the vector store.
 
-- ``vector`` — documents are chunked and embedded into the vector store.
-- ``markdown`` — documents are rendered to a Markdown corpus (no
-  embeddings; see :mod:`vaillant_rag.markdown_store`).
-
-Incremental strategy (both kinds): each document's raw bytes are hashed
-(SHA-256). On sync, unchanged documents are skipped, changed documents
-are re-processed, and documents deleted from the source directory are
+Incremental strategy: each document's raw bytes are hashed (SHA-256).
+On sync, unchanged documents are skipped, changed documents are
+re-processed, and documents deleted from the source directory are
 removed from the index.
 """
 
 from __future__ import annotations
 
 import hashlib
-import json
 import logging
 import time
 from dataclasses import dataclass, field
@@ -24,8 +19,7 @@ from pathlib import Path
 from .chunking import chunk_text
 from .config import Settings
 from .embeddings import Embedder
-from .loaders import extract_markdown, extract_text, is_supported
-from .markdown_store import HASHES_FILE, markdown_dir
+from .loaders import extract_text, is_supported
 from .vector_store import VectorStore
 
 logger = logging.getLogger(__name__)
@@ -88,8 +82,7 @@ def index_document(store: VectorStore, embedder: Embedder, settings: Settings, p
 def sync_index(settings: Settings, full_rebuild: bool = False) -> SyncReport:
     """Synchronize the index with the documents directory.
 
-    Dispatches on ``settings.retrieval_mode``: the vector store or the
-    Markdown corpus.
+    Chunks and embeds changed documents into the vector store.
 
     Args:
         settings: Application settings.
@@ -98,13 +91,6 @@ def sync_index(settings: Settings, full_rebuild: bool = False) -> SyncReport:
     Returns:
         A :class:`SyncReport` describing what changed.
     """
-    if settings.retrieval_mode == "markdown":
-        return _sync_markdown_corpus(settings, full_rebuild)
-    return _sync_vector_store(settings, full_rebuild)
-
-
-def _sync_vector_store(settings: Settings, full_rebuild: bool) -> SyncReport:
-    """Chunk + embed changed documents into the vector store."""
     docs_dir = Path(settings.docs_dir)
     documents = _list_documents(docs_dir)
     store = VectorStore() if full_rebuild else VectorStore.load(settings.index_dir)
@@ -130,59 +116,6 @@ def _sync_vector_store(settings: Settings, full_rebuild: bool) -> SyncReport:
             report.failed.append(path.name)
 
     store.save(settings.index_dir)
-    _log_sync_summary(report)
-    return report
-
-
-def _sync_markdown_corpus(settings: Settings, full_rebuild: bool) -> SyncReport:
-    """Render changed documents to the Markdown corpus (no embeddings)."""
-    docs_dir = Path(settings.docs_dir)
-    documents = _list_documents(docs_dir)
-    directory = markdown_dir(settings.index_dir)
-    directory.mkdir(parents=True, exist_ok=True)
-    hashes_path = directory / HASHES_FILE
-
-    hashes: dict[str, str] = {}
-    if full_rebuild:
-        for md_path in directory.glob("*.md"):
-            md_path.unlink()
-    elif hashes_path.is_file():
-        try:
-            hashes = json.loads(hashes_path.read_text(encoding="utf-8"))
-        except json.JSONDecodeError as exc:
-            logger.warning("Ignoring corrupt %s: %s", hashes_path, exc)
-
-    report = SyncReport()
-    present_names = {p.name for p in documents}
-    for stale_name in sorted(set(hashes) - present_names):
-        (directory / f"{stale_name}.md").unlink(missing_ok=True)
-        hashes.pop(stale_name)
-        logger.info("Removed %s from markdown corpus", stale_name)
-        report.removed.append(stale_name)
-
-    for path in documents:
-        try:
-            digest = _hash_file(path)
-            if hashes.get(path.name) == digest:
-                logger.debug("Unchanged, skipping: %s", path.name)
-                report.skipped_unchanged.append(path.name)
-                continue
-            started = time.perf_counter()
-            markdown = extract_markdown(path, ocr_images=settings.ocr_images)
-            (directory / f"{path.name}.md").write_text(markdown, encoding="utf-8")
-            hashes[path.name] = digest
-            logger.info(
-                "Rendered %s to markdown: %d chars in %.2fs",
-                path.name,
-                len(markdown),
-                time.perf_counter() - started,
-            )
-            report.added_or_updated.append(path.name)
-        except Exception:
-            logger.exception("Failed to render %s", path.name)
-            report.failed.append(path.name)
-
-    hashes_path.write_text(json.dumps(hashes, ensure_ascii=False, indent=2), encoding="utf-8")
     _log_sync_summary(report)
     return report
 

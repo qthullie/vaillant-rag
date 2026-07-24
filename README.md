@@ -15,9 +15,9 @@ OpenAI, Mistral, and more.
 
 Point it at a folder of documents (PDF, Word, Excel, Markdown, plain text,
 HTML), build a local index, and ask questions answered strictly from your
-documents' content — fully offline if you use a local model. Retrieval is
-either a classic vector index or, optionally, an LLM-navigated Markdown
-corpus (see [Markdown mode](#markdown-mode-llm-navigated-retrieval)).
+documents' content — fully offline if you use a local model. Retrieval is a
+hybrid vector index (dense embeddings + BM25, fused with reciprocal rank
+fusion), with optional cross-encoder re-ranking.
 
 <p align="center">
   <img src="assets/demo.svg" alt="Animated demo of a vaillant-rag qa session" width="760"/>
@@ -35,7 +35,6 @@ corpus (see [Markdown mode](#markdown-mode-llm-navigated-retrieval)).
   - [4. Ask questions](#4-ask-questions)
 - [Web API](#web-api)
 - [Scaling retrieval](#scaling-retrieval)
-- [Markdown mode (LLM-navigated retrieval)](#markdown-mode-llm-navigated-retrieval)
 - [Configuration](#configuration)
 - [Development](#development)
 - [Scalability notes](#scalability-notes)
@@ -65,9 +64,6 @@ framework. `vaillant-rag` is a small, readable, dependency-light pipeline that:
   collections; auto-selected above a configurable size threshold
 - **Cross-encoder re-ranking** (optional): re-scores retrieval candidates
   for higher precision before they reach the LLM
-- **Markdown mode** (optional): documents become a Markdown corpus and the
-  LLM picks sections from an outline — agentic navigate-then-read retrieval,
-  no embeddings involved
 - **Streaming answers**: tokens appear as the model generates them, in the
   CLI and over the API (Server-Sent Events)
 - **FastAPI web service**: `/ask`, `/ask/stream`, `/reindex`, `/health` —
@@ -83,8 +79,6 @@ framework. `vaillant-rag` is a small, readable, dependency-light pipeline that:
 ```
 documents (.pdf/.txt/.md/.html/.docx/.xlsx)
         │  loaders.py (extraction, optional OCR)
-        │  — retrieval_mode: markdown → markdown_store.py
-        │    (Markdown corpus; LLM picks sections from an outline)
         ▼
    chunking.py (sentence-aware, size/overlap from config)
         │
@@ -232,40 +226,6 @@ final `top_n_contexts`. Slower per query, noticeably better precision.
 Default model is English (`cross-encoder/ms-marco-MiniLM-L6-v2`); for
 multilingual corpora use `reranker_model: BAAI/bge-reranker-base`.
 
-## Markdown mode (LLM-navigated retrieval)
-
-An optional alternative to the vector index, following the pattern agentic
-assistants use to search a codebase: instead of embedding chunks, documents
-are rendered to a **Markdown corpus** (`data/index/markdown/`, structure
-preserved — headings, PDF page markers, tables). At question time the LLM
-reads a numbered outline of all sections, picks the ones worth consulting,
-and the answer is generated from their full text. If the corpus outgrows
-`markdown_outline_limit`, the outline is BM25-prefiltered; if the selection
-step fails, retrieval falls back to plain BM25.
-
-```yaml
-retrieval_mode: markdown
-```
-
-Then rebuild: `vaillant-rag index` (fast — no embeddings are computed;
-sentence-transformers is not even loaded in this mode).
-
-Trade-offs versus the vector index:
-
-| | Vector index (default) | Markdown mode |
-|---|---|---|
-| Retrieval unit | fixed-size chunks | whole sections, structure intact |
-| Semantic paraphrase matching | strong (embeddings) | depends on the LLM + outline |
-| Latency / tokens per question | one LLM call | two LLM calls (selection + answer) |
-| Index build cost | embedding every chunk | text conversion only |
-| Transparency | similarity scores | you see which sections the LLM chose |
-| Extra dependencies at query time | sentence-transformers (+FAISS) | none |
-| Sweet spot | large corpora, small local models | small/medium corpora, capable models |
-
-Neither mode is universally better: markdown mode shines when a capable
-model can exploit document structure; the vector index wins on large
-collections and with small local models.
-
 ## Configuration
 
 All tunables live in [`config.yaml`](config.yaml); every key can be
@@ -282,7 +242,6 @@ overridden by an environment variable of the same name in upper case
 | `embedding_model` | `intfloat/multilingual-e5-small` | sentence-transformers model |
 | `chunk_size_chars` | `1000` | Max chunk length |
 | `chunk_overlap_chars` | `150` | Overlap between chunks |
-| `retrieval_mode` | `vector` | `vector` (embedding index) / `markdown` (LLM-picked sections) |
 | `top_k` | `20` | Retrieval candidates |
 | `top_n_contexts` | `5` | Contexts sent to the LLM |
 | `use_hybrid_search` | `true` | Dense + BM25 fusion |
@@ -290,8 +249,6 @@ overridden by an environment variable of the same name in upper case
 | `faiss_min_chunks` | `50000` | Auto-switch threshold for FAISS |
 | `use_reranker` | `false` | Cross-encoder re-ranking |
 | `reranker_model` | `cross-encoder/ms-marco-MiniLM-L6-v2` | Re-ranking model |
-| `markdown_section_max_chars` | `4000` | Markdown mode: max characters per section |
-| `markdown_outline_limit` | `150` | Markdown mode: BM25-prefilter outline above this size |
 | `ocr_images` | `false` | OCR images inside PDFs |
 | `system_prompt_path` | `prompts/system_prompt.txt` | System prompt file (or inline text) |
 

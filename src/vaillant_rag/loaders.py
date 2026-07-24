@@ -14,14 +14,9 @@ Dispatches on file extension. Supported formats:
 Legacy binary formats (``.doc``, ``.xls``) are not supported; convert
 them to ``.docx`` / ``.xlsx`` first.
 
-Two entry points share the same dispatch table:
-
-- :func:`extract_text` — flat text for the embedding pipeline.
-- :func:`extract_markdown` — structure-preserving Markdown (headings,
-  page markers) for the LLM-navigated markdown retrieval mode.
-
-To support a new format, add an entry to :data:`_LOADERS` (and to
-:data:`_MARKDOWN_LOADERS` when a structured variant exists).
+:func:`extract_text` is the single entry point, producing flat text for
+the embedding pipeline. To support a new format, add an entry to
+:data:`_LOADERS`.
 """
 
 from __future__ import annotations
@@ -69,19 +64,13 @@ def _ocr_image(img: Image.Image) -> str:
         return ""
 
 
-def _extract_pdf(path: Path, ocr_images: bool = False, page_headings: bool = False) -> str:
-    """Extract text from a PDF, optionally OCR-ing embedded images.
-
-    With ``page_headings``, each page is preceded by a ``## Page N``
-    Markdown heading (used by :func:`extract_markdown`).
-    """
+def _extract_pdf(path: Path, ocr_images: bool = False) -> str:
+    """Extract text from a PDF, optionally OCR-ing embedded images."""
     import fitz  # PyMuPDF; imported lazily to keep non-PDF usage light
 
     parts: list[str] = []
     with fitz.open(path) as doc:
         for page_number, page in enumerate(doc, start=1):
-            if page_headings:
-                parts.append(f"## Page {page_number}")
             parts.append(page.get_text("text"))
             if not (ocr_images and pytesseract and Image):
                 continue
@@ -106,68 +95,43 @@ def _extract_pdf(path: Path, ocr_images: bool = False, page_headings: bool = Fal
     return "\n".join(parts)
 
 
-def _extract_pdf_markdown(path: Path, ocr_images: bool = False) -> str:
-    """Markdown variant of :func:`_extract_pdf`: pages become headings."""
-    return _extract_pdf(path, ocr_images, page_headings=True)
-
-
 def _extract_plain_text(path: Path, ocr_images: bool = False) -> str:
     """Read a plain-text file (UTF-8, tolerant of stray bytes)."""
     return path.read_text(encoding="utf-8", errors="replace")
 
 
 class _HTMLTextExtractor(HTMLParser):
-    """Collect text nodes, skipping script/style contents.
-
-    With ``markdown_headings``, the first text node inside ``<h1>``–``<h6>``
-    is emitted as a Markdown heading line.
-    """
+    """Collect text nodes, skipping script/style contents."""
 
     _SKIPPED_TAGS = {"script", "style"}
-    _HEADING_TAGS = {f"h{level}": level for level in range(1, 7)}
 
-    def __init__(self, markdown_headings: bool = False) -> None:
+    def __init__(self) -> None:
         super().__init__()
         self._parts: list[str] = []
         self._skip_depth = 0
-        self._markdown_headings = markdown_headings
-        self._heading_level = 0
 
     def handle_starttag(self, tag: str, attrs: list[tuple[str, str | None]]) -> None:
         if tag in self._SKIPPED_TAGS:
             self._skip_depth += 1
-        elif self._markdown_headings and tag in self._HEADING_TAGS:
-            self._heading_level = self._HEADING_TAGS[tag]
 
     def handle_endtag(self, tag: str) -> None:
         if tag in self._SKIPPED_TAGS and self._skip_depth > 0:
             self._skip_depth -= 1
-        elif tag in self._HEADING_TAGS:
-            self._heading_level = 0
 
     def handle_data(self, data: str) -> None:
         if self._skip_depth > 0 or not data.strip():
             return
-        if self._heading_level:
-            self._parts.append(f"{'#' * self._heading_level} {data.strip()}")
-            self._heading_level = 0
-        else:
-            self._parts.append(data.strip())
+        self._parts.append(data.strip())
 
     def text(self) -> str:
         return "\n".join(self._parts)
 
 
-def _extract_html(path: Path, ocr_images: bool = False, markdown_headings: bool = False) -> str:
+def _extract_html(path: Path, ocr_images: bool = False) -> str:
     """Extract visible text from an HTML file."""
-    parser = _HTMLTextExtractor(markdown_headings=markdown_headings)
+    parser = _HTMLTextExtractor()
     parser.feed(path.read_text(encoding="utf-8", errors="replace"))
     return parser.text()
-
-
-def _extract_html_markdown(path: Path, ocr_images: bool = False) -> str:
-    """Markdown variant of :func:`_extract_html`: ``<hN>`` become headings."""
-    return _extract_html(path, ocr_images, markdown_headings=True)
 
 
 # Word heading styles carry localized names ("Heading 1", "Titre 1", ...);
@@ -193,10 +157,10 @@ def _extract_docx(path: Path, ocr_images: bool = False) -> str:
     """Extract text from a Word document (headings, paragraphs, tables).
 
     Headings are rendered as Markdown ``#`` lines and tables as
-    pipe-separated rows, so the same output serves both plain-text
-    chunking and the markdown retrieval mode. python-docx exposes
-    paragraphs and tables as two separate lists, so their relative
-    order in the document is not preserved (tables come last).
+    pipe-separated rows, which keeps structure legible in the chunked
+    text. python-docx exposes paragraphs and tables as two separate
+    lists, so their relative order in the document is not preserved
+    (tables come last).
     """
     try:
         import docx
@@ -266,15 +230,6 @@ _LOADERS: dict[str, Callable[[Path, bool], str]] = {
     ".xlsm": _extract_xlsx,
 }
 
-# Structure-preserving variants for the markdown retrieval mode. Formats
-# absent here already produce Markdown-flavored output (or plain text).
-_MARKDOWN_LOADERS: dict[str, Callable[[Path, bool], str]] = {
-    **_LOADERS,
-    ".pdf": _extract_pdf_markdown,
-    ".html": _extract_html_markdown,
-    ".htm": _extract_html_markdown,
-}
-
 SUPPORTED_EXTENSIONS: frozenset[str] = frozenset(_LOADERS)
 
 
@@ -313,14 +268,3 @@ def extract_text(path: str | Path, ocr_images: bool = False) -> str:
     """
     path = Path(path)
     return _resolve_loader(path, _LOADERS)(path, ocr_images)
-
-
-def extract_markdown(path: str | Path, ocr_images: bool = False) -> str:
-    """Extract a document as structure-preserving Markdown.
-
-    Same contract as :func:`extract_text`, but headings, PDF page
-    markers, and tables are kept in Markdown form. Used to build the
-    corpus for the markdown retrieval mode.
-    """
-    path = Path(path)
-    return _resolve_loader(path, _MARKDOWN_LOADERS)(path, ocr_images)

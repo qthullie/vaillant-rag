@@ -33,8 +33,6 @@ QUIT_COMMANDS = {"quit", "exit", "q"}
 
 def _retrieval_summary(settings: Settings) -> str:
     """Human-readable retrieval description for the timing line."""
-    if settings.retrieval_mode == "markdown":
-        return "markdown mode: LLM-picked sections"
     summary = "hybrid search: dense + BM25, RRF" if settings.use_hybrid_search else "dense search"
     if settings.use_reranker:
         summary += ", reranked"
@@ -85,9 +83,8 @@ def _cmd_qa(settings: Settings, args: argparse.Namespace) -> int:
     if pipeline.store.is_empty:
         print(error("The index is empty. Run `vaillant-rag index` first."), file=sys.stderr)
         return 1
-    unit = "sections" if settings.retrieval_mode == "markdown" else "chunks"
     print(f"{accent('vaillant-rag')} {dim('— qa')}")
-    print(dim(f"Loaded {len(pipeline.store)} {unit}. Type 'quit' to exit.") + "\n")
+    print(dim(f"Loaded {len(pipeline.store)} chunks. Type 'quit' to exit.") + "\n")
     while True:
         try:
             question = prompt_input("Your question: ").strip()
