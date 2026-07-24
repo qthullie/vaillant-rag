@@ -54,9 +54,7 @@ class Reranker:
         """
         if not candidates:
             return []
-        scores = self.model.predict(
-            [(query, c.text) for c in candidates], show_progress_bar=False
-        )
+        scores = self.model.predict([(query, c.text) for c in candidates], show_progress_bar=False)
         reranked = [
             RetrievedChunk(chunk_id=c.chunk_id, text=c.text, score=float(s))
             for c, s in zip(candidates, scores, strict=True)

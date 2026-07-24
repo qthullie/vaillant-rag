@@ -94,9 +94,7 @@ def chunk_is_relevant(chunk_text: str, sources: Sequence[str]) -> bool:
     return any(_normalize(s) in haystack for s in sources)
 
 
-def rank_of_first_relevant(
-    ranked_texts: Sequence[str], sources: Sequence[str]
-) -> int | None:
+def rank_of_first_relevant(ranked_texts: Sequence[str], sources: Sequence[str]) -> int | None:
     """1-based rank of the first relevant chunk, or None if none match."""
     for rank, text in enumerate(ranked_texts, start=1):
         if chunk_is_relevant(text, sources):
@@ -182,9 +180,7 @@ def evaluate(
 
     answerable = [r for r in results if r.answerable]
     n = len(answerable)
-    recall = {
-        k: (sum(recall_at_k(r.rank, k) for r in answerable) / n if n else 0.0) for k in ks
-    }
+    recall = {k: (sum(recall_at_k(r.rank, k) for r in answerable) / n if n else 0.0) for k in ks}
     mrr = sum(reciprocal_rank(r.rank) for r in answerable) / n if n else 0.0
     return EvalSummary(
         config=config,
