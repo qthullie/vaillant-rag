@@ -4,6 +4,12 @@
 
 <h1 align="center">Vaillant RAG</h1>
 
+<p align="center">
+  <a href="https://github.com/qthullie/vaillant-rag/actions/workflows/ci.yml"><img src="https://github.com/qthullie/vaillant-rag/actions/workflows/ci.yml/badge.svg" alt="CI"/></a>
+  <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue.svg" alt="License: MIT"/></a>
+  <img src="https://img.shields.io/badge/python-3.10%20%7C%203.11%20%7C%203.12-blue.svg" alt="Python 3.10+"/>
+</p>
+
 > Named after **Vaillant**, the homing pigeon that flew the last message out
 > of Fort Vaux through the shellfire of Verdun in 1916 — and delivered it.
 > That is retrieval under pressure: one messenger, the right message,
@@ -26,6 +32,7 @@ fusion), with optional cross-encoder re-ranking.
 ## Table of contents
 
 - [Why](#why)
+- [Two-minute tour](#two-minute-tour)
 - [Features](#features)
 - [Architecture](#architecture)
 - [Quick start](#quick-start)
@@ -36,6 +43,7 @@ fusion), with optional cross-encoder re-ranking.
 - [Web API](#web-api)
 - [Scaling retrieval](#scaling-retrieval)
 - [Configuration](#configuration)
+- [Evaluation](#evaluation)
 - [Development](#development)
 - [Scalability notes](#scalability-notes)
 - [Security notes](#security-notes)
@@ -49,8 +57,51 @@ framework. `vaillant-rag` is a small, readable, dependency-light pipeline that:
 - works with **any chat endpoint** speaking the OpenAI `/chat/completions` API;
 - runs **fully local** (local embeddings + Ollama) with zero API cost;
 - uses **hybrid retrieval** (dense embeddings + BM25, reciprocal rank fusion)
-  for noticeably better results than dense-only search;
+  — measured against dense-only search on the bundled corpus (see
+  [Evaluation](#evaluation));
 - supports **incremental indexing**: only changed documents are re-embedded.
+
+## Two-minute tour
+
+The repository ships with a small [example corpus](data/docs/) (the Universal
+Declaration of Human Rights, a chapter of *The Rust Programming Language*, and
+a solar-system fact sheet), so you can go from clone to answers immediately.
+
+```bash
+# 1. Clone and install (CPU-only PyTorch is fine)
+git clone https://github.com/qthullie/vaillant-rag.git
+cd vaillant-rag
+pip install -e ".[office]"
+
+# 2. Build the index over the bundled documents (downloads the embedding
+#    model on first run, then works offline)
+vaillant-rag index
+# -> Index updated: 3 added/updated, 0 unchanged, 0 removed, 0 failed.
+
+# 3a. Reproduce the retrieval evaluation — no LLM needed, fully offline
+vaillant-rag eval --ablate
+# -> a recall@k / MRR / latency table (see the Evaluation section)
+
+# 3b. Or ask questions (needs an LLM endpoint; e.g. `ollama serve` with phi4-mini)
+vaillant-rag qa
+```
+
+A `qa` session looks like this:
+
+```text
+vaillant-rag — qa
+Loaded 50 chunks. Type 'quit' to exit.
+
+Your question: What is the tallest volcano in the Solar System?
+
+=== Answer ===
+Olympus Mons, on Mars, is the tallest volcano in the Solar System, rising
+about 22 kilometers above the surrounding plains.
+
+(1.4s — streamed, hybrid search: dense + BM25, RRF)
+```
+
+The exact wording depends on your LLM; the retrieved context does not.
 
 ## Features
 
@@ -153,7 +204,8 @@ Switching to OpenAI, Mistral, vLLM, LM Studio… is just a different
 ### 3. Add documents and build the index
 
 ```bash
-# put your files in data/docs/ then:
+# The repo already ships an example corpus in data/docs/.
+# Add your own files there too (or replace them), then:
 vaillant-rag index
 ```
 
@@ -222,9 +274,11 @@ once the collection exceeds `faiss_min_chunks` (50 000). Force it with
 
 **Cross-encoder re-ranking (quality).** Set `use_reranker: true` to
 re-score the `top_k` candidates with a cross-encoder before selecting the
-final `top_n_contexts`. Slower per query, noticeably better precision.
-Default model is English (`cross-encoder/ms-marco-MiniLM-L6-v2`); for
-multilingual corpora use `reranker_model: BAAI/bge-reranker-base`.
+final `top_n_contexts`. On the bundled corpus it lifts recall@1 and MRR
+markedly but adds ~1.5 s of CPU latency per query — see
+[Evaluation](#evaluation) for the exact trade-off. Default model is English
+(`cross-encoder/ms-marco-MiniLM-L6-v2`); for multilingual corpora use
+`reranker_model: BAAI/bge-reranker-base`.
 
 ## Configuration
 
@@ -254,6 +308,71 @@ overridden by an environment variable of the same name in upper case
 
 Customize the assistant's behavior by editing
 [`prompts/system_prompt.txt`](prompts/system_prompt.txt).
+
+## Evaluation
+
+`vaillant-rag eval` measures **retrieval** quality on a fixed question set
+([`eval/questions.yaml`](eval/questions.yaml)) whose gold passages are known.
+It scores nothing with the LLM, so it runs fully offline. `--ablate` compares
+retrieval strategies on the same index; `--chunk-sizes` additionally rebuilds
+temporary indexes to compare chunk sizes.
+
+```bash
+vaillant-rag index                              # build the index first
+vaillant-rag eval --ablate --chunk-sizes 500,1500 --json eval/results.json
+```
+
+**What the metrics mean.** A retrieved chunk is *relevant* when it contains
+one of the question's gold snippets. **recall@k** is the fraction of
+answerable questions for which a relevant chunk appears in the top *k*
+results. **MRR** (mean reciprocal rank) averages `1/rank` of the first
+relevant chunk — it rewards ranking the right passage higher, not just
+retrieving it. Latency is wall-clock time per query (query embedding +
+search + any re-ranking).
+
+### Results
+
+Reference run committed at [`eval/results.json`](eval/results.json).
+Embedding model `intfloat/multilingual-e5-small`; corpus of **3 documents
+(50 chunks)**; **27 answerable + 3 unanswerable** questions; `top_k=20`;
+Intel (Alder Lake) laptop CPU, **CPU-only**, Windows 11.
+
+| Metric | dense | hybrid | hybrid + reranker | hybrid chunk=500 | hybrid chunk=1500 |
+|---|---|---|---|---|---|
+| recall@1 | 0.630 | 0.741 | **0.889** | 0.704 | 0.815 |
+| recall@3 | 0.852 | 0.852 | **0.963** | 0.852 | 0.963 |
+| recall@5 | 0.889 | **1.000** | 0.963 | 1.000 | 0.963 |
+| recall@10 | 1.000 | 1.000 | 1.000 | 1.000 | 1.000 |
+| MRR | 0.767 | 0.823 | **0.919** | 0.799 | 0.889 |
+| latency p50 (ms) | 24 | 24 | 1555 | 33 | 37 |
+| latency p95 (ms) | 29 | 26 | 1872 | 44 | 51 |
+
+**Reading the numbers honestly:**
+
+- **Hybrid vs dense** is a *real but modest* win on this corpus: recall@1
+  rises 0.63 → 0.74 and MRR 0.77 → 0.82, and hybrid finds every answer within
+  the top 5 (recall@5 = 1.00) where dense does not — at essentially no extra
+  latency. But recall@3 is identical, and both retrieve every answer by
+  rank 10. This is a weaker effect than the previous README asserted.
+- **The re-ranker is the largest quality lever**: recall@1 0.74 → 0.89 and
+  MRR 0.82 → 0.92. It costs ~65× the latency (24 ms → ~1.5 s on CPU),
+  and it even nudges recall@5 *down* (1.00 → 0.96) by demoting one gold
+  passage — a reminder that re-ranking optimizes the top of the list, not
+  coverage.
+- **Chunk size matters**: bigger chunks help here (recall@1 0.70 / 0.74 /
+  0.82 at 500 / 1000 / 1500 chars), because more context lands in a single
+  chunk on a small, prose-heavy corpus.
+
+### Limitations
+
+This is a **tiny benchmark** (50 chunks, 27 answerable questions), written by
+the maintainer from the corpus itself. recall@10 saturates at 1.0 for every
+configuration — a ceiling effect that a larger corpus would remove. Treat the
+numbers as an honest, reproducible snapshot of *these* documents and this
+embedding model, not as a general claim about hybrid search or re-ranking.
+Retrieval quality is also not answer quality: the eval deliberately stops at
+the retrieval layer. Metric definitions and edge cases are unit-tested in
+[`tests/test_evaluation.py`](tests/test_evaluation.py).
 
 ## Development
 
