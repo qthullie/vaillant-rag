@@ -335,7 +335,10 @@ search + any re-ranking).
 Reference run committed at [`eval/results.json`](eval/results.json).
 Embedding model `intfloat/multilingual-e5-small`; corpus of **3 documents
 (50 chunks)**; **27 answerable + 3 unanswerable** questions; `top_k=20`;
-Intel (Alder Lake) laptop CPU, **CPU-only**, Windows 11.
+Intel (Alder Lake) laptop CPU, **CPU-only**, Windows 11. Quality metrics
+(recall, MRR) reproduce exactly across runs; latency is machine- and
+load-dependent — a re-run on a busier machine gave p50 99 ms / 2.0 s for
+hybrid / hybrid+rerank, the same ~20× ratio.
 
 | Metric | dense | hybrid | hybrid + reranker | hybrid chunk=500 | hybrid chunk=1500 |
 |---|---|---|---|---|---|
